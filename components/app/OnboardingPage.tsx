@@ -12,6 +12,7 @@ export function OnboardingPage() {
   const [step, setStep] = useState<Step>("welcome");
   const [bvn, setBvn] = useState("");
   const [bvnLoading, setBvnLoading] = useState(false);
+  const [showTestPopup, setShowTestPopup] = useState(false);
   const [monoLoaded, setMonoLoaded] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
@@ -125,11 +126,44 @@ export function OnboardingPage() {
                 ))}
               </div>
               <button
-                onClick={() => setStep("bvn")}
+                onClick={() => { setStep("bvn"); setShowTestPopup(true); }}
                 className="w-full bg-[#C8F135] text-[#0D0D0D] font-bold py-4 rounded-2xl hover:bg-[#B8E020] transition-all"
               >
                 Let us go
               </button>
+            </div>
+          )}
+
+          {step === "bvn" && showTestPopup && (
+            <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8">
+              <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                onClick={() => setShowTestPopup(false)}
+              />
+              <div className="relative w-full max-w-sm bg-[#181818] border border-[rgba(200,241,53,0.2)] rounded-3xl p-6 animate-slide-up">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-[#C8F135] text-base">ℹ</span>
+                  <span className="font-display font-semibold text-[#F2F0E8] text-base">Test mode</span>
+                </div>
+                <p className="text-[#888070] text-sm leading-relaxed mb-5">
+                  You can skip BVN verification for now and come back to it later.
+                  BVN is not required in test mode.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowTestPopup(false); router.push("/app/home"); }}
+                    className="flex-1 border border-white/10 text-[#F2F0E8] font-semibold py-3 rounded-2xl text-sm hover:bg-white/5 transition-colors"
+                  >
+                    Skip for now
+                  </button>
+                  <button
+                    onClick={() => setShowTestPopup(false)}
+                    className="flex-1 bg-[#C8F135] text-[#0D0D0D] font-bold py-3 rounded-2xl text-sm hover:bg-[#B8E020] transition-all"
+                  >
+                    Verify BVN
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
