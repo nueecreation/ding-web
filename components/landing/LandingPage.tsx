@@ -30,22 +30,22 @@ function Nav() {
           </div>
           <span className="font-display font-bold text-xl">Ding!</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Link
             href="/app"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-[#C8F135] font-semibold border border-[rgba(200,241,53,0.3)] px-4 py-2 rounded-full hover:bg-[rgba(200,241,53,0.08)] transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-[#C8F135] font-semibold border border-[rgba(200,241,53,0.3)] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-[rgba(200,241,53,0.08)] transition-colors whitespace-nowrap"
           >
-            <span className="relative flex h-2 w-2">
+            <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C8F135] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C8F135]" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-[#C8F135]" />
             </span>
             Try Ding! live
           </Link>
           <a
             href="#waitlist"
-            className="bg-[#C8F135] text-[#0D0D0D] font-semibold text-sm px-4 py-2 rounded-full hover:bg-[#B8E020] transition-colors"
+            className="bg-[#C8F135] text-[#0D0D0D] font-semibold text-xs sm:text-sm px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-[#B8E020] transition-colors whitespace-nowrap"
           >
             Get early access
           </a>
