@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { WaitlistPopup } from "@/components/WaitlistPopup";
 
 const QRScanner = dynamic(() => import("./QRScanner"), { ssr: false });
 
@@ -29,6 +30,7 @@ export function SendPage() {
   const [payment, setPayment] = useState<PaymentRequest | null>(null);
   const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [txRef, setTxRef] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -52,6 +54,7 @@ export function SendPage() {
         });
         setStep("done");
         toast("Payment confirmed!");
+        setTimeout(() => setShowPopup(true), 2000);
       }
     } catch {}
   }
@@ -124,6 +127,7 @@ export function SendPage() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D]">
+      {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
       {step === "scan" && (
         <div className="animate-slide-up">
           <div className="px-5 py-6 mb-2">

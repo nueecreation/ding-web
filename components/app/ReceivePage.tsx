@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
+import { WaitlistPopup } from "@/components/WaitlistPopup";
 
 const QRCodeSVG = dynamic(
   () => import("react-qr-code").then((m) => ({ default: m.QRCode })),
@@ -29,6 +30,7 @@ export function ReceivePage() {
   const [loading, setLoading] = useState(false);
   const [paidBy, setPaidBy] = useState<string | null>(null);
   const [paidAt, setPaidAt] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -92,6 +94,7 @@ export function ReceivePage() {
         setPaidAt(data.paidAt);
         setStep("paid");
         toast("Payment received!");
+        setTimeout(() => setShowPopup(true), 2000);
       } else if (data.status === "EXPIRED") {
         clearInterval(pollRef.current!);
         clearInterval(timerRef.current!);
@@ -139,6 +142,7 @@ export function ReceivePage() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D]">
+      {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
       {step === "enter" && (
         <div className="px-5 py-6 animate-slide-up">
           <div className="mb-6">

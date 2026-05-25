@@ -3,7 +3,8 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { WaitlistPopup } from "@/components/WaitlistPopup";
 
 const NAV_ITEMS = [
   { href: "/app/home", icon: HomeIcon, label: "Home" },
@@ -19,6 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isOnboarding = pathname === "/app/onboarding";
   const isAuth = pathname === "/app/auth";
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated" && !isAuth) {
@@ -28,6 +30,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       router.push("/app/home");
     }
   }, [status, router, isAuth]);
+
+  useEffect(() => {
+    if (isAuth || isOnboarding) return;
+    const timer = setTimeout(() => setShowPopup(true), 3 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [isAuth, isOnboarding]);
 
   if (status === "loading") {
     return (
@@ -41,6 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] max-w-[430px] mx-auto relative">
+      {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
       {!isOnboarding && !isAuth && <AppHeader />}
       <main className={!isOnboarding && !isAuth ? "pb-24 min-h-screen" : "min-h-screen"}>
         {children}
