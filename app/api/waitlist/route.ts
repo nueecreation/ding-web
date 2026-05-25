@@ -41,8 +41,9 @@ export async function POST(req: Request) {
     if (err.name === "ZodError") {
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
+    console.error("[waitlist]", err?.message ?? err);
     return NextResponse.json(
-      { error: "Could not add to waitlist" },
+      { error: "Could not add to waitlist", detail: err?.message },
       { status: 500 }
     );
   }
