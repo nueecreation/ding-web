@@ -45,6 +45,7 @@ function classifyError(err: any): Phase {
 export default function QRScanner({ onScan }: Props) {
   const scannerRef = useRef<any>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const lastScanRef = useRef<number>(0);
   const [phase, setPhase] = useState<Phase>("prompt");
 
   useEffect(() => {
@@ -111,18 +112,27 @@ export default function QRScanner({ onScan }: Props) {
 
       const config = { fps: 10, qrbox: { width: 220, height: 220 } };
 
+      function handleResult(text: string) {
+        const now = Date.now();
+        if (now - lastScanRef.current < 3000) return;
+        lastScanRef.current = now;
+        stopAll();
+        setPhase("prompt");
+        onScan(text);
+      }
+
       try {
         await scanner.start(
           { facingMode: "environment" },
           config,
-          (text: string) => onScan(text),
+          handleResult,
           () => {}
         );
       } catch {
         await scanner.start(
           { facingMode: "user" },
           config,
-          (text: string) => onScan(text),
+          handleResult,
           () => {}
         );
       }
