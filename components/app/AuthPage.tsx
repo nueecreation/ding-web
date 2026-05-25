@@ -14,7 +14,8 @@ export function AuthPage() {
 
   async function handleGoogle() {
     setLoading(true);
-    await signIn("google", { callbackUrl: "/app/home" });
+    const callbackUrl = `${window.location.origin}/app/home`;
+    await signIn("google", { callbackUrl });
   }
 
   async function sendOTP() {
