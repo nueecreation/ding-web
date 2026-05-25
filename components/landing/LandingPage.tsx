@@ -373,7 +373,7 @@ function Founder() {
 
           <blockquote className="font-display font-medium text-2xl md:text-3xl text-[#F2F0E8] leading-snug mb-10">
             &quot;Ding! is the product I kept wishing existed every single time
-            I bought something in Nigeria.&quot;
+            I paid for something in Nigeria.&quot;
           </blockquote>
 
           <div className="flex items-center gap-4">
