@@ -112,17 +112,17 @@ function Hero() {
         </div>
       </div>
 
-      <div className="mt-20 grid grid-cols-3 gap-6 max-w-lg">
+      <div className="mt-20 grid grid-cols-3 gap-3 md:gap-6 max-w-lg">
         {[
           { num: "25x", label: "faster than bank transfer" },
           { num: "3", label: "steps, not 9" },
           { num: "Any bank.", label: "works with what you have" },
         ].map((stat) => (
           <div key={stat.num}>
-            <div className="font-display font-bold text-2xl md:text-3xl text-[#C8F135] mb-1">
+            <div className="font-display font-bold text-base md:text-3xl text-[#C8F135] mb-1 whitespace-nowrap">
               {stat.num}
             </div>
-            <div className="text-[#888070] text-xs leading-snug">{stat.label}</div>
+            <div className="text-[#888070] text-[10px] md:text-xs leading-snug">{stat.label}</div>
           </div>
         ))}
       </div>
