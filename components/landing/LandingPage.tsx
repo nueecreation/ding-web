@@ -372,10 +372,8 @@ function Founder() {
           </p>
 
           <blockquote className="font-display font-medium text-2xl md:text-3xl text-[#F2F0E8] leading-snug mb-10">
-            &quot;I spent 3 years watching Payday grow to 2 million users. I know
-            what it takes to make Nigerians trust a new fintech. Ding! is the product
-            I kept wishing existed every time I bought something and went through
-            the whole 9-step transfer ritual.&quot;
+            &quot;Ding! is the product I kept wishing existed every single time
+            I bought something in Nigeria.&quot;
           </blockquote>
 
           <div className="flex items-center gap-4">
@@ -384,11 +382,10 @@ function Founder() {
             </div>
             <div>
               <div className="font-display font-semibold text-[#F2F0E8] text-lg">
-                Deborah Onyibe
+                Deborah Onyibe, MBA
               </div>
               <div className="text-[#888070] text-sm">
-                MBA. Scaled Payday to 2 million users as Creative Director.
-                Building Ding! in public.
+                Startup Brand Strategist. Building Ding! in public.
               </div>
             </div>
           </div>
@@ -396,8 +393,10 @@ function Founder() {
           <div className="mt-10 flex flex-wrap gap-4">
             {[
               "2M+ users at Payday",
-              "Creative Director",
+              "Serial Builder",
+              "SCAD",
               "MBA",
+              "Atlanta",
               "Lagos",
             ].map((tag) => (
               <span
