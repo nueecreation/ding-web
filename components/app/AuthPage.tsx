@@ -10,6 +10,7 @@ export function AuthPage() {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showBanner, setShowBanner] = useState(true);
   const router = useRouter();
 
   async function handleGoogle() {
@@ -61,6 +62,30 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center p-6">
+      {showBanner && (
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-4 pt-4">
+          <div className="flex items-start gap-3 bg-[#1A1A12] border border-[rgba(200,241,53,0.2)] rounded-2xl px-4 py-3">
+            <span className="text-[#C8F135] text-sm mt-0.5 flex-shrink-0">🧪</span>
+            <p className="text-[#888070] text-xs leading-relaxed flex-1">
+              To experience the full Ding! demo, email{" "}
+              <a
+                href="mailto:debbie@spireteinc.com"
+                className="text-[#C8F135] hover:underline"
+              >
+                debbie@spireteinc.com
+              </a>{" "}
+              to receive access to the two test accounts. This app is currently in test mode.
+            </p>
+            <button
+              onClick={() => setShowBanner(false)}
+              className="text-[#4A4A44] hover:text-[#888070] text-base leading-none flex-shrink-0 ml-1 transition-colors"
+              aria-label="Dismiss"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2.5 mb-12">
           <div className="w-10 h-10 bg-[#C8F135] rounded-xl flex items-center justify-center text-[#0D0D0D] font-display font-bold text-lg">
