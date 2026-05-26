@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import toast from "react-hot-toast";
 import dynamic from "next/dynamic";
-import { WaitlistPopup } from "@/components/WaitlistPopup";
+import { FeedbackPopup } from "@/components/FeedbackPopup";
 
 const QRCodeSVG = dynamic(
   () => import("react-qr-code").then((m) => ({ default: m.QRCode })),
@@ -133,7 +133,9 @@ export function ReceivePage() {
         setReceivedTo(data.receivedTo ?? null);
         setStep("paid");
         toast("Payment received!");
-        setTimeout(() => setShowPopup(true), 2000);
+        setTimeout(() => {
+          if (!sessionStorage.getItem("feedback_shown")) setShowPopup(true);
+        }, 2000);
       } else if (data.status === "EXPIRED") {
         clearInterval(pollRef.current!);
         clearInterval(timerRef.current!);
@@ -141,6 +143,14 @@ export function ReceivePage() {
       }
     } catch {}
   }, [requestId]);
+
+  useEffect(() => {
+    if (step !== "qr") return;
+    const t = setTimeout(() => {
+      if (!sessionStorage.getItem("feedback_shown")) setShowPopup(true);
+    }, 30_000);
+    return () => clearTimeout(t);
+  }, [step]);
 
   useEffect(() => {
     if ((step !== "qr" && step !== "receive_select") || !requestId) return;
@@ -207,7 +217,7 @@ export function ReceivePage() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D]">
-      {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
+      {showPopup && <FeedbackPopup onDismiss={() => setShowPopup(false)} />}
 
       {/* ENTER AMOUNT */}
       {step === "enter" && (

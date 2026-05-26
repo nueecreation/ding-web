@@ -131,6 +131,17 @@ model WaitlistEntry {
   @@map("waitlist_entries")
 }
 
+model Feedback {
+  id        String   @id @default(cuid())
+  rating    Int
+  comment   String?
+  email     String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@map("feedback")
+}
+
 enum PaymentRequestStatus {
   PENDING
   OFFER

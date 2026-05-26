@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { FeedbackPopup } from "@/components/FeedbackPopup";
 
 interface PayerAccount {
   id: string;
@@ -50,11 +51,20 @@ export function DingPayPage({
   const [doneRef, setDoneRef] = useState("");
   const [receivedTo, setReceivedTo] = useState<{ bank: string; last4: string } | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<PayerAccount | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Keep reference stable for the Paystack callback closure
   const requestIdRef = useRef(requestId);
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  useEffect(() => {
+    if (phase !== "done") return;
+    const t = setTimeout(() => {
+      if (!sessionStorage.getItem("feedback_shown")) setShowFeedback(true);
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   // Inject Paystack inline script on mount — next/script beforeInteractive is
   // only valid in layout.tsx and silently fails inside client components.
@@ -195,6 +205,13 @@ export function DingPayPage({
       ["Status", "Delivered ✓"],
     ];
     return (
+      <>
+        {showFeedback && (
+          <FeedbackPopup
+            onDismiss={() => setShowFeedback(false)}
+            initialEmail={payerEmail}
+          />
+        )}
       <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="text-center mb-6">
@@ -232,6 +249,7 @@ export function DingPayPage({
           </Link>
         </div>
       </div>
+      </>
     );
   }
 

@@ -8,14 +8,22 @@ import Script from "next/script";
 
 type Step = "welcome" | "bvn" | "bank" | "done";
 
+const TEST_MODE = process.env.NEXT_PUBLIC_TEST_MODE === "true";
+
 export function OnboardingPage() {
   const [step, setStep] = useState<Step>("welcome");
   const [bvn, setBvn] = useState("");
   const [bvnLoading, setBvnLoading] = useState(false);
-  const [showTestPopup, setShowTestPopup] = useState(false);
+  const [showTestBanner, setShowTestBanner] = useState(false);
   const [monoLoaded, setMonoLoaded] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+
+  useEffect(() => {
+    if (!TEST_MODE) return;
+    if (sessionStorage.getItem("onboarding_test_banner_dismissed")) return;
+    setShowTestBanner(true);
+  }, []);
 
   async function verifyBVN() {
     if (bvn.length !== 11) return;
@@ -126,7 +134,7 @@ export function OnboardingPage() {
                 ))}
               </div>
               <button
-                onClick={() => { setStep("bvn"); setShowTestPopup(true); }}
+                onClick={() => setStep("bvn")}
                 className="w-full bg-[#C8F135] text-[#0D0D0D] font-bold py-4 rounded-2xl hover:bg-[#B8E020] transition-all"
               >
                 Let us go
@@ -134,35 +142,32 @@ export function OnboardingPage() {
             </div>
           )}
 
-          {step === "bvn" && showTestPopup && (
+          {showTestBanner && (
             <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-8">
               <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-                onClick={() => setShowTestPopup(false)}
+                onClick={() => {
+                  sessionStorage.setItem("onboarding_test_banner_dismissed", "1");
+                  setShowTestBanner(false);
+                }}
               />
               <div className="relative w-full max-w-sm bg-[#181818] border border-[rgba(200,241,53,0.2)] rounded-3xl p-6 animate-slide-up">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-[#C8F135] text-base">ℹ</span>
+                  <span className="text-[#C8F135] text-xl">🧪</span>
                   <span className="font-display font-semibold text-[#F2F0E8] text-base">Test mode</span>
                 </div>
                 <p className="text-[#888070] text-sm leading-relaxed mb-5">
-                  You can skip BVN verification for now and come back to it later.
-                  BVN is not required in test mode.
+                  This is a test — you don&apos;t need a real BVN or bank account. Just tap through each step to continue.
                 </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setShowTestPopup(false); router.push("/app/home"); }}
-                    className="flex-1 border border-white/10 text-[#F2F0E8] font-semibold py-3 rounded-2xl text-sm hover:bg-white/5 transition-colors"
-                  >
-                    Skip for now
-                  </button>
-                  <button
-                    onClick={() => setShowTestPopup(false)}
-                    className="flex-1 bg-[#C8F135] text-[#0D0D0D] font-bold py-3 rounded-2xl text-sm hover:bg-[#B8E020] transition-all"
-                  >
-                    Verify BVN
-                  </button>
-                </div>
+                <button
+                  onClick={() => {
+                    sessionStorage.setItem("onboarding_test_banner_dismissed", "1");
+                    setShowTestBanner(false);
+                  }}
+                  className="w-full bg-[#C8F135] text-[#0D0D0D] font-bold py-3.5 rounded-2xl text-sm hover:bg-[#B8E020] transition-all"
+                >
+                  Got it, let&apos;s go
+                </button>
               </div>
             </div>
           )}

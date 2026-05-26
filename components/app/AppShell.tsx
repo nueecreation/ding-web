@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { WaitlistPopup } from "@/components/WaitlistPopup";
+import { FeedbackPopup } from "@/components/FeedbackPopup";
+import { WaitlistForm } from "@/components/landing/WaitlistForm";
 
 const NAV_ITEMS = [
   { href: "/app/home", icon: HomeIcon, label: "Home" },
@@ -20,7 +21,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isOnboarding = pathname === "/app/onboarding";
   const isAuth = pathname === "/app/auth";
-  const [showPopup, setShowPopup] = useState(false);
+  const [showFeedbackPopup, setShowFeedbackPopup] = useState(false);
+  const [showWaitlistSheet, setShowWaitlistSheet] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated" && !isAuth) {
@@ -33,7 +35,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (isAuth || isOnboarding) return;
-    const timer = setTimeout(() => setShowPopup(true), 3 * 60 * 1000);
+    const timer = setTimeout(() => {
+      if (!sessionStorage.getItem("feedback_shown")) {
+        setShowFeedbackPopup(true);
+      }
+    }, 3 * 60 * 1000);
     return () => clearTimeout(timer);
   }, [isAuth, isOnboarding]);
 
@@ -58,8 +64,37 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] max-w-[430px] mx-auto relative">
-      {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
-      {!isOnboarding && !isAuth && <AppHeader />}
+      {showFeedbackPopup && (
+        <FeedbackPopup
+          onDismiss={() => setShowFeedbackPopup(false)}
+          initialEmail={session?.user?.email ?? ""}
+        />
+      )}
+      {showWaitlistSheet && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-6">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowWaitlistSheet(false)}
+          />
+          <div className="relative w-full max-w-sm bg-[#181818] border border-white/10 rounded-3xl p-6 animate-slide-up">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display font-bold text-xl text-[#F2F0E8]">
+                Join early access 💚
+              </h2>
+              <button
+                onClick={() => setShowWaitlistSheet(false)}
+                className="text-[#4A4A44] hover:text-[#888070] text-lg transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <WaitlistForm />
+          </div>
+        </div>
+      )}
+      {!isOnboarding && !isAuth && (
+        <AppHeader onLikeClick={() => setShowWaitlistSheet(true)} />
+      )}
       <main className={!isOnboarding && !isAuth ? "pb-24 min-h-screen" : "min-h-screen"}>
         {children}
       </main>
@@ -77,7 +112,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function AppHeader() {
+function AppHeader({ onLikeClick }: { onLikeClick: () => void }) {
   return (
     <header className="sticky top-0 z-40 bg-[rgba(13,13,13,0.92)] backdrop-blur-xl border-b border-white/8 px-5 h-14 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -86,10 +121,13 @@ function AppHeader() {
         </div>
         <span className="font-display font-bold text-lg text-[#F2F0E8]">Ding!</span>
       </div>
-      <div className="flex items-center gap-1.5">
+      <button
+        onClick={onLikeClick}
+        className="flex items-center gap-1.5 hover:opacity-80 active:scale-95 transition-all"
+      >
         <span className="w-1.5 h-1.5 bg-[#4ADE80] rounded-full animate-pulse-dot" />
-        <span className="text-[#4A4A44] text-xs">Live</span>
-      </div>
+        <span className="text-[#4ADE80] text-xs font-medium">I like this 💚</span>
+      </button>
     </header>
   );
 }
