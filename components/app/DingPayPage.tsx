@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Script from "next/script";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -57,6 +56,18 @@ export function DingPayPage({
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
+  // Inject Paystack inline script on mount — next/script beforeInteractive is
+  // only valid in layout.tsx and silently fails inside client components.
+  useEffect(() => {
+    if ((window as any).PaystackPop) return;
+    if (document.getElementById("paystack-inline-js")) return;
+    const s = document.createElement("script");
+    s.id = "paystack-inline-js";
+    s.src = "https://js.paystack.co/v2/inline.js";
+    s.async = true;
+    document.head.appendChild(s);
+  }, []);
+
   const initials = vendorName
     .split(" ")
     .map((n) => n[0])
@@ -108,9 +119,14 @@ export function DingPayPage({
     }, 2000);
   }
 
-  function openPaystack() {
+  function openPaystack(attempt = 0) {
     const PaystackPop = (window as any).PaystackPop;
     if (!PaystackPop) {
+      if (attempt < 15) {
+        // Script still loading — retry every 300 ms (up to ~4.5 s)
+        setTimeout(() => openPaystack(attempt + 1), 300);
+        return;
+      }
       toast("Payment system not ready, please refresh");
       setPhase("select");
       return;
@@ -219,7 +235,6 @@ export function DingPayPage({
 
   return (
     <>
-      <Script src="https://js.paystack.co/v2/inline.js" strategy="beforeInteractive" />
       <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body flex items-start justify-center p-4 pt-8">
         <div className="w-full max-w-sm">
           {/* Header */}

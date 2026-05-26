@@ -31,6 +31,7 @@ export function SendPage() {
   const [authUrl, setAuthUrl] = useState<string | null>(null);
   const [txRef, setTxRef] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [navigating, setNavigating] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -65,6 +66,9 @@ export function SendPage() {
       toast("Invalid Ding! QR code");
       return;
     }
+    // Set navigating first so the camera UI is replaced immediately,
+    // preventing the QRScanner reset-to-prompt flash while router navigates.
+    setNavigating(true);
     router.push(`/p/${id}`);
   }
 
@@ -128,7 +132,7 @@ export function SendPage() {
   return (
     <div className="min-h-screen bg-[#0D0D0D]">
       {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
-      {step === "scan" && (
+      {step === "scan" && !navigating && (
         <div className="animate-slide-up">
           <div className="px-5 py-6 mb-2">
             <p className="text-[#888070] text-sm mb-1">Send money</p>
@@ -142,6 +146,13 @@ export function SendPage() {
               Point your camera at a vendor's Ding! QR code
             </p>
           </div>
+        </div>
+      )}
+
+      {step === "scan" && navigating && (
+        <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+          <div className="w-10 h-10 border-2 border-[#C8F135] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#888070] text-sm">Loading payment...</p>
         </div>
       )}
 
