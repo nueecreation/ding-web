@@ -81,7 +81,7 @@ function Hero() {
         </h1>
 
         <p className="text-[#888070] text-lg md:text-xl leading-relaxed mb-10 max-w-2xl">
-          Transferring money in Nigeria takes 9 steps and 3 minutes. Ding! collapses
+          Transferring money in Nigeria takes 9 steps and anywhere from 3 to 30 minutes. Ding! collapses
           it to a scan and a tap. No account numbers. No app switching. No waiting
           to &quot;see alert&quot;.
         </p>
