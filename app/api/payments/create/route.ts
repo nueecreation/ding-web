@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
 const schema = z.object({
-  amountKobo: z.number().int().min(100).max(500_000_00),
+  amountKobo: z.number().int().min(100).max(100_000_000),
 });
 
 export async function POST(req: Request) {
