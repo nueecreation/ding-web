@@ -113,7 +113,7 @@ export function AuthPage() {
             </button>
 
             <button
-              onClick={() => setMode("phone")}
+              onClick={() => toast("Phone login coming soon — use Google for now")}
               className="w-full flex items-center gap-3 justify-center bg-[#C8F135] text-[#0D0D0D] font-bold py-4 rounded-2xl hover:bg-[#B8E020] transition-colors text-sm"
             >
               <PhoneIcon />
@@ -121,8 +121,10 @@ export function AuthPage() {
             </button>
 
             <p className="text-center text-xs text-[#4A4A44] mt-6">
-              By continuing you agree to Ding!'s Terms and Privacy Policy.
-              BVN verification required to transact.
+              By continuing you agree to Ding!&apos;s Terms and Privacy Policy.{" "}
+              {process.env.NEXT_PUBLIC_TEST_MODE === "true"
+                ? "Test mode — no BVN required."
+                : "BVN verification required to transact."}
             </p>
           </div>
         )}
