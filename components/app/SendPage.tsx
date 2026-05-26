@@ -65,7 +65,7 @@ export function SendPage() {
       toast("Invalid Ding! QR code");
       return;
     }
-    loadPaymentRequest(id);
+    router.push(`/p/${id}`);
   }
 
   async function loadPaymentRequest(requestId: string) {

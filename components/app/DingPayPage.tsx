@@ -49,6 +49,8 @@ export function DingPayPage({
     payerAccounts.find((a) => a.isDefault)?.id ?? payerAccounts[0]?.id ?? null
   );
   const [doneRef, setDoneRef] = useState("");
+  const [receivedTo, setReceivedTo] = useState<{ bank: string; last4: string } | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState<PayerAccount | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Keep reference stable for the Paystack callback closure
   const requestIdRef = useRef(requestId);
@@ -67,6 +69,8 @@ export function DingPayPage({
       toast("Select a bank account");
       return;
     }
+
+    setSelectedAccount(payerAccounts.find((a) => a.id === selectedId) ?? null);
 
     // Step 1: create the offer so vendor gets notified
     setPhase("waiting");
@@ -129,6 +133,7 @@ export function DingPayPage({
           const data = await res.json();
           if (!res.ok) throw new Error(data.error);
           setDoneRef(transaction.reference);
+          if (data.receivedTo) setReceivedTo(data.receivedTo);
           setPhase("done");
         } catch (err: any) {
           toast(`Payment sent. Ref: ${transaction.reference}. Contact support if not confirmed.`);
@@ -142,21 +147,44 @@ export function DingPayPage({
   }
 
   if (phase === "done") {
+    const last4 = selectedAccount?.accountNumber?.slice(-4) ?? "····";
+    const rows: [string, string][] = [
+      ["Amount", formatNaira(amountKobo)],
+      ...(selectedAccount ? [["From", `${selectedAccount.institutionName} ···· ${last4}`] as [string, string]] : []),
+      ...(receivedTo ? [["To", `${vendorName} · ${receivedTo.bank}`] as [string, string]] : []),
+      ...(doneRef ? [["Ref", doneRef] as [string, string]] : []),
+      ["Status", "Delivered ✓"],
+    ];
     return (
-      <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
-          <div className="w-20 h-20 rounded-full bg-[rgba(74,222,128,0.1)] border-2 border-[#4ADE80] flex items-center justify-center mx-auto mb-6 text-4xl">
-            ✓
+      <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-6">
+            <div className="w-20 h-20 rounded-full bg-[rgba(74,222,128,0.1)] border-2 border-[#4ADE80] flex items-center justify-center mx-auto mb-4 text-3xl">
+              ✓
+            </div>
+            <div className="font-display font-bold text-5xl text-[#4ADE80] mb-1">
+              {formatNaira(amountKobo)}
+            </div>
+            <div className="text-[#888070] text-sm mb-1">sent to {vendorName}</div>
+            <div className="font-display font-bold text-xl text-[#C8F135] mt-3">
+              🔔 Both sides Dinged!
+            </div>
           </div>
-          <h1 className="font-display font-bold text-3xl text-[#F2F0E8] mb-2">
-            Payment sent!
-          </h1>
-          <p className="text-[#888070] mb-1">
-            You paid {formatNaira(amountKobo)} to {vendorName}.
-          </p>
-          {doneRef && (
-            <p className="text-[#4A4A44] text-xs mb-8 font-mono">{doneRef}</p>
-          )}
+
+          <div className="p-4 rounded-2xl bg-[#181818] border border-white/8 mb-4">
+            {rows.map(([k, v]) => (
+              <div
+                key={k}
+                className="flex justify-between py-2.5 border-b border-white/8 last:border-0 text-sm"
+              >
+                <span className="text-[#4A4A44]">{k}</span>
+                <span className={k === "Status" ? "text-[#4ADE80] font-medium" : "text-[#F2F0E8] font-medium truncate ml-4 text-right"}>
+                  {v}
+                </span>
+              </div>
+            ))}
+          </div>
+
           <Link
             href="/app/home"
             className="block w-full bg-[#C8F135] text-[#0D0D0D] font-bold py-4 rounded-2xl hover:bg-[#B8E020] transition-all text-center"

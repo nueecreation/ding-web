@@ -117,6 +117,7 @@ export function ReceivePage() {
       if (data.status === "OFFER") {
         // Payer is ready — switch to receive account selection
         clearInterval(timerRef.current!);
+        clearInterval(pollRef.current!);
         setPayerName(data.payerName ?? "Someone");
         await fetchAccounts();
         setStep("receive_select");
@@ -410,7 +411,7 @@ export function ReceivePage() {
           <div className="text-[#888070] text-sm mb-1">received</div>
           {paidBy && <div className="text-[#F2F0E8] font-medium">from {paidBy}</div>}
 
-          <div className="font-display font-bold text-2xl text-[#C8F135] mt-6 mb-10">Ding!</div>
+          <div className="font-display font-bold text-2xl text-[#C8F135] mt-6 mb-10">🔔 Both sides Dinged!</div>
 
           <div className="w-full max-w-xs space-y-3">
             <div className="p-4 rounded-2xl bg-[#181818] border border-white/8">

@@ -51,6 +51,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
     }
 
+    // Look up vendor's chosen receive account for receipt
+    const receiveAccount = request.receiveAccountId
+      ? await prisma.linkedBankAccount.findUnique({
+          where: { id: request.receiveAccountId },
+          select: { institutionName: true, accountNumber: true },
+        })
+      : null;
+    const receivedTo = receiveAccount
+      ? { bank: receiveAccount.institutionName, last4: receiveAccount.accountNumber?.slice(-4) ?? "????" }
+      : null;
+
     // Idempotency: if this reference was already recorded, return success
     const existing = await prisma.transaction.findFirst({
       where: { paystackRef: reference },
@@ -60,6 +71,7 @@ export async function POST(req: Request) {
         ok: true,
         vendorName: request.user.name ?? "Vendor",
         amountKobo: request.amountKobo,
+        receivedTo,
       });
     }
 
@@ -84,6 +96,7 @@ export async function POST(req: Request) {
       ok: true,
       vendorName: request.user.name ?? "Vendor",
       amountKobo: request.amountKobo,
+      receivedTo,
     });
   } catch (err: any) {
     if (err.name === "ZodError") {
