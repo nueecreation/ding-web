@@ -37,12 +37,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Payment request expired" }, { status: 400 });
     }
 
+    // Reset expiresAt so the payer gets a full 5-min window from when they engage,
+    // not from when the vendor first generated the QR.
     await prisma.paymentRequest.update({
       where: { id: requestId },
       data: {
         status: "OFFER",
         payerUserId: payerId,
         payerAccountId: payerAccountId ?? null,
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       },
     });
 

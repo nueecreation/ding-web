@@ -102,8 +102,13 @@ export function ReceivePage() {
       const data = await res.json();
       if (data.accounts) {
         setAccounts(data.accounts);
-        const defaultAcc = data.accounts.find((a: BankAccount) => a.isDefault);
-        setSelectedReceiveId(defaultAcc?.id ?? data.accounts[0]?.id ?? null);
+        // Only set a default if nothing is selected yet — don't stomp a user's
+        // manual selection when the poll re-fires in receive_select.
+        setSelectedReceiveId((prev) => {
+          if (prev) return prev;
+          const defaultAcc = data.accounts.find((a: BankAccount) => a.isDefault);
+          return defaultAcc?.id ?? data.accounts[0]?.id ?? null;
+        });
       }
     } catch {}
   }
@@ -117,7 +122,6 @@ export function ReceivePage() {
       if (data.status === "OFFER") {
         // Payer is ready — switch to receive account selection
         clearInterval(timerRef.current!);
-        clearInterval(pollRef.current!);
         setPayerName(data.payerName ?? "Someone");
         await fetchAccounts();
         setStep("receive_select");

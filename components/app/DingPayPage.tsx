@@ -106,7 +106,11 @@ export function DingPayPage({
         const data = await res.json();
         if (data.offerStatus === "confirmed") {
           clearInterval(pollRef.current!);
-          openPaystack();
+          if (process.env.NEXT_PUBLIC_TEST_MODE === "true") {
+            completeTestPay();
+          } else {
+            openPaystack();
+          }
         } else if (data.offerStatus === "expired") {
           clearInterval(pollRef.current!);
           toast("Payment request expired");
@@ -117,6 +121,25 @@ export function DingPayPage({
         }
       } catch {}
     }, 2000);
+  }
+
+  async function completeTestPay() {
+    setPhase("paying");
+    try {
+      const res = await fetch("/api/payments/test-pay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: requestIdRef.current }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setDoneRef(`TEST-${Date.now()}`);
+      if (data.receivedTo) setReceivedTo(data.receivedTo);
+      setPhase("done");
+    } catch (err: any) {
+      toast(err.message ?? "Test payment failed");
+      setPhase("select");
+    }
   }
 
   function openPaystack(attempt = 0) {

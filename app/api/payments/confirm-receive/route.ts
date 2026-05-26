@@ -30,8 +30,16 @@ export async function POST(req: Request) {
     if (request.userId !== userId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    if (request.status !== "OFFER") {
+    // Require that a payer has actually engaged (payerUserId set by /offer)
+    if (!request.payerUserId) {
       return NextResponse.json({ error: "No pending offer" }, { status: 400 });
+    }
+    if (request.status === "PAID" || request.status === "EXPIRED") {
+      return NextResponse.json({ error: "No pending offer" }, { status: 400 });
+    }
+    // Idempotent: already confirmed — just return success so the payer can proceed
+    if (request.status === "PENDING" && request.receiveAccountId) {
+      return NextResponse.json({ ok: true });
     }
 
     // Verify the account belongs to this vendor

@@ -47,6 +47,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (status === "unauthenticated" && !isAuth) return null;
 
+  const testMode = process.env.NEXT_PUBLIC_TEST_MODE === "true";
+  const showResetPill = testMode && !isAuth && !isOnboarding;
+
+  function handleStartOver() {
+    if (window.confirm("Start over? This clears the current payment and returns you to Home.")) {
+      router.push("/app/home");
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] max-w-[430px] mx-auto relative">
       {showPopup && <WaitlistPopup onDismiss={() => setShowPopup(false)} />}
@@ -55,6 +64,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       {!isOnboarding && !isAuth && <BottomNav pathname={pathname} />}
+      {showResetPill && (
+        <button
+          onClick={handleStartOver}
+          className="fixed bottom-28 right-4 z-50 flex items-center gap-1.5 bg-[#1A1A1A] border border-white/20 text-[#888070] text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:border-white/40 hover:text-[#F2F0E8] transition-all active:scale-95"
+        >
+          <span aria-hidden>↻</span>
+          <span>Start Over</span>
+        </button>
+      )}
     </div>
   );
 }
