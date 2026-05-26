@@ -136,8 +136,8 @@ model Feedback {
   rating    Int
   comment   String?
   email     String?
-  userId    String?
-  createdAt DateTime @default(now())
+  userId    String?  @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@map("feedback")
 }
