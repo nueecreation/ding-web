@@ -20,7 +20,9 @@ export async function GET(req: Request) {
 
   const request = await prisma.paymentRequest.findFirst({
     where: { id: requestId, userId },
-    include: { transaction: { include: { sender: true } } },
+    include: {
+      transaction: { include: { sender: true } },
+    },
   });
 
   if (!request) {
@@ -33,6 +35,45 @@ export async function GET(req: Request) {
       data: { status: "EXPIRED" },
     });
     return NextResponse.json({ status: "EXPIRED" });
+  }
+
+  if (request.status === "OFFER") {
+    // Vendor gets notified that a payer is ready
+    const payer = request.payerUserId
+      ? await prisma.user.findUnique({
+          where: { id: request.payerUserId },
+          select: { name: true },
+        })
+      : null;
+    return NextResponse.json({
+      status: "OFFER",
+      amountKobo: request.amountKobo,
+      payerName: payer?.name ?? "Someone",
+    });
+  }
+
+  if (request.status === "PAID") {
+    // Include which account received the money
+    const receiveAccount = request.receiveAccountId
+      ? await prisma.linkedBankAccount.findUnique({
+          where: { id: request.receiveAccountId },
+          select: { institutionName: true, accountNumber: true },
+        })
+      : null;
+
+    return NextResponse.json({
+      status: "PAID",
+      amountKobo: request.amountKobo,
+      expiresAt: request.expiresAt.toISOString(),
+      paidBy: request.transaction?.sender?.name ?? null,
+      paidAt: request.transaction?.createdAt?.toISOString() ?? null,
+      receivedTo: receiveAccount
+        ? {
+            bank: receiveAccount.institutionName,
+            last4: receiveAccount.accountNumber?.slice(-4) ?? "????",
+          }
+        : null,
+    });
   }
 
   return NextResponse.json({

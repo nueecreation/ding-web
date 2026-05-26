@@ -78,6 +78,7 @@ model LinkedBankAccount {
   accountName     String?
   currency        String   @default("NGN")
   isDefault       Boolean  @default(false)
+  balanceKobo     Int?
   createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -86,14 +87,17 @@ model LinkedBankAccount {
 }
 
 model PaymentRequest {
-  id          String   @id @default(cuid())
-  userId      String
-  amountKobo  Int
-  status      PaymentRequestStatus @default(PENDING)
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
+  id               String               @id @default(cuid())
+  userId           String
+  amountKobo       Int
+  status           PaymentRequestStatus @default(PENDING)
+  expiresAt        DateTime
+  createdAt        DateTime             @default(now())
+  receiveAccountId String?
+  payerUserId      String?
+  payerAccountId   String?
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   transaction  Transaction?
 
   @@map("payment_requests")
@@ -129,6 +133,7 @@ model WaitlistEntry {
 
 enum PaymentRequestStatus {
   PENDING
+  OFFER
   PAID
   EXPIRED
   CANCELLED

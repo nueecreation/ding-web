@@ -9,12 +9,14 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "npx tsx prisma/seed.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^1.6.0",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/client": "^5.14.0",
+    "@prisma/prisma-schema-wasm": "^7.8.0-6.3c6e192761c0362d496ed980de936e2f3cebcd3a",
     "html5-qrcode": "^2.3.8",
     "next": "14.2.35",
     "next-auth": "^4.24.7",
@@ -32,7 +34,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
-    "prisma": "^5.14.0",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

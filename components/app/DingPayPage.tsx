@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -24,7 +24,7 @@ interface Props {
   payerAccounts: PayerAccount[];
 }
 
-type Phase = "select" | "paying" | "done";
+type Phase = "select" | "waiting" | "paying" | "done";
 
 function formatNaira(kobo: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -49,6 +49,11 @@ export function DingPayPage({
     payerAccounts.find((a) => a.isDefault)?.id ?? payerAccounts[0]?.id ?? null
   );
   const [doneRef, setDoneRef] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Keep reference stable for the Paystack callback closure
+  const requestIdRef = useRef(requestId);
+
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
   const initials = vendorName
     .split(" ")
@@ -58,13 +63,56 @@ export function DingPayPage({
     .toUpperCase();
 
   async function handlePay() {
-    const PaystackPop = (window as any).PaystackPop;
-    if (!PaystackPop) {
-      toast("Payment system not ready, please try again in a moment");
+    if (payerAccounts.length > 0 && !selectedId) {
+      toast("Select a bank account");
       return;
     }
 
+    // Step 1: create the offer so vendor gets notified
+    setPhase("waiting");
+    try {
+      const offerRes = await fetch("/api/payments/offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId, payerAccountId: selectedId }),
+      });
+      const offerData = await offerRes.json();
+      if (!offerRes.ok) throw new Error(offerData.error);
+    } catch (err: any) {
+      toast(err.message ?? "Could not initiate payment");
+      setPhase("select");
+      return;
+    }
+
+    // Step 2: poll until vendor confirms their receive account
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/payments/offer-status?requestId=${requestId}`);
+        const data = await res.json();
+        if (data.offerStatus === "confirmed") {
+          clearInterval(pollRef.current!);
+          openPaystack();
+        } else if (data.offerStatus === "expired") {
+          clearInterval(pollRef.current!);
+          toast("Payment request expired");
+          setPhase("select");
+        } else if (data.offerStatus === "paid") {
+          clearInterval(pollRef.current!);
+          setPhase("done");
+        }
+      } catch {}
+    }, 2000);
+  }
+
+  function openPaystack() {
+    const PaystackPop = (window as any).PaystackPop;
+    if (!PaystackPop) {
+      toast("Payment system not ready, please refresh");
+      setPhase("select");
+      return;
+    }
     setPhase("paying");
+    const rId = requestIdRef.current;
 
     const paystack = new PaystackPop();
     paystack.newTransaction({
@@ -76,18 +124,14 @@ export function DingPayPage({
           const res = await fetch("/api/payments/ding-pay", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              requestId,
-              reference: transaction.reference,
-            }),
+            body: JSON.stringify({ requestId: rId, reference: transaction.reference }),
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error);
           setDoneRef(transaction.reference);
           setPhase("done");
         } catch (err: any) {
-          // Payment went through but recording failed — give reference so user can follow up
-          toast(`Payment sent but not yet confirmed. Reference: ${transaction.reference}`);
+          toast(`Payment sent. Ref: ${transaction.reference}. Contact support if not confirmed.`);
           setPhase("select");
         }
       },
@@ -111,9 +155,7 @@ export function DingPayPage({
             You paid {formatNaira(amountKobo)} to {vendorName}.
           </p>
           {doneRef && (
-            <p className="text-[#4A4A44] text-xs mb-8 font-mono">
-              {doneRef}
-            </p>
+            <p className="text-[#4A4A44] text-xs mb-8 font-mono">{doneRef}</p>
           )}
           <Link
             href="/app/home"
@@ -121,6 +163,27 @@ export function DingPayPage({
           >
             Back to Ding!
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "waiting") {
+    return (
+      <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body flex items-center justify-center p-4">
+        <div className="w-full max-w-sm text-center">
+          <div className="w-16 h-16 rounded-full bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] flex items-center justify-center mx-auto mb-6">
+            <span className="w-6 h-6 border-2 border-[#C8F135] border-t-transparent rounded-full animate-spin" />
+          </div>
+          <h2 className="font-display font-bold text-xl text-[#F2F0E8] mb-2">
+            Waiting for {vendorName}...
+          </h2>
+          <p className="text-[#888070] text-sm">
+            {vendorName} is choosing which account to receive into.
+          </p>
+          <p className="text-[#4A4A44] text-xs mt-6">
+            Keep this screen open
+          </p>
         </div>
       </div>
     );
@@ -139,7 +202,7 @@ export function DingPayPage({
             <span className="font-display font-bold text-[#F2F0E8]">Ding!</span>
             <span className="ml-auto text-xs text-[#4ADE80] flex items-center gap-1">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="#4ADE80">
-                <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm-1 14l-4-4 1.41-1.41L11 13.17l6.59-6.59L19 8l-8 8z"/>
+                <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm-1 14l-4-4 1.41-1.41L11 13.17l6.59-6.59L19 8l-8 8z" />
               </svg>
               Ding! Pay
             </span>
@@ -148,23 +211,15 @@ export function DingPayPage({
           {isPaid && (
             <div className="p-6 rounded-2xl border border-[rgba(74,222,128,0.2)] bg-[rgba(74,222,128,0.05)] text-center">
               <div className="text-4xl mb-3">✓</div>
-              <div className="font-display font-bold text-[#4ADE80] text-xl mb-1">
-                Already paid
-              </div>
-              <p className="text-[#888070] text-sm">
-                This payment request has been completed.
-              </p>
+              <div className="font-display font-bold text-[#4ADE80] text-xl mb-1">Already paid</div>
+              <p className="text-[#888070] text-sm">This payment request has been completed.</p>
             </div>
           )}
 
           {isExpired && !isPaid && (
             <div className="p-6 rounded-2xl border border-[rgba(248,113,113,0.2)] bg-[rgba(248,113,113,0.05)] text-center">
-              <div className="font-display font-bold text-[#F87171] text-xl mb-1">
-                QR expired
-              </div>
-              <p className="text-[#888070] text-sm">
-                Ask the vendor to generate a new QR code.
-              </p>
+              <div className="font-display font-bold text-[#F87171] text-xl mb-1">QR expired</div>
+              <p className="text-[#888070] text-sm">Ask the vendor to generate a new QR code.</p>
             </div>
           )}
 
@@ -173,9 +228,7 @@ export function DingPayPage({
               {/* Vendor card */}
               <div className="p-4 rounded-2xl border border-white/8 bg-[#181818] flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-[rgba(200,241,53,0.1)] flex items-center justify-center flex-shrink-0">
-                  <span className="font-display font-bold text-[#C8F135] text-lg">
-                    {initials}
-                  </span>
+                  <span className="font-display font-bold text-[#C8F135] text-lg">{initials}</span>
                 </div>
                 <div>
                   <div className="font-semibold text-[#F2F0E8]">{vendorName}</div>
@@ -203,22 +256,15 @@ export function DingPayPage({
 
                 {payerAccounts.length === 0 ? (
                   <div className="p-5 rounded-2xl border border-white/8 bg-[#181818] text-center">
-                    <p className="text-[#888070] text-sm mb-3">
-                      No bank account linked yet.
-                    </p>
-                    <Link
-                      href="/app/onboarding"
-                      className="text-[#C8F135] text-sm font-semibold"
-                    >
+                    <p className="text-[#888070] text-sm mb-3">No bank account linked yet.</p>
+                    <Link href="/app/onboarding" className="text-[#C8F135] text-sm font-semibold">
                       Link a bank account in Ding!
                     </Link>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {payerAccounts.map((acc) => {
-                      const last4 = acc.accountNumber
-                        ? acc.accountNumber.slice(-4)
-                        : "····";
+                      const last4 = acc.accountNumber ? acc.accountNumber.slice(-4) : "····";
                       const isSelected = selectedId === acc.id;
                       return (
                         <button
@@ -232,27 +278,21 @@ export function DingPayPage({
                         >
                           <div
                             className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
-                              isSelected
-                                ? "border-[#C8F135]"
-                                : "border-[#4A4A44]"
+                              isSelected ? "border-[#C8F135]" : "border-[#4A4A44]"
                             }`}
                           >
-                            {isSelected && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-[#C8F135]" />
-                            )}
+                            {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#C8F135]" />}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-semibold text-[#F2F0E8]">
                               {acc.institutionName}{" "}
-                              <span className="text-[#4A4A44] tracking-widest">
-                                ···· {last4}
-                              </span>
+                              <span className="text-[#4A4A44] tracking-widest">···· {last4}</span>
                             </div>
-                            <div className="text-xs text-[#888070] mt-0.5 flex items-center gap-2 flex-wrap">
+                            <div className="text-xs text-[#888070] mt-0.5 flex items-center gap-2">
                               <span className="truncate">{acc.accountName}</span>
                               {acc.balance !== null && (
                                 <span className="text-[#4A4A44] flex-shrink-0">
-                                  {formatNaira(acc.balance)}
+                                  · {formatNaira(acc.balance)}
                                 </span>
                               )}
                             </div>
@@ -264,7 +304,6 @@ export function DingPayPage({
                 )}
               </div>
 
-              {/* Pay button */}
               <button
                 onClick={handlePay}
                 disabled={phase === "paying" || payerAccounts.length === 0}

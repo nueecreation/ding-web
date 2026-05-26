@@ -72,11 +72,14 @@ export default async function PaymentPage({
 
   const payerAccounts = await Promise.all(
     payerAccountsRaw.map(async (a) => {
-      let balance: number | null = null;
-      try {
-        const res = await getAccountBalance(a.monoAccountId);
-        balance = typeof res?.data?.balance === "number" ? res.data.balance : null;
-      } catch {}
+      // Use DB balance (sandbox dummy data) if present; otherwise try Mono
+      let balance: number | null = a.balanceKobo ?? null;
+      if (balance === null && !a.monoAccountId.startsWith("mock_")) {
+        try {
+          const res = await getAccountBalance(a.monoAccountId);
+          balance = typeof res?.data?.balance === "number" ? res.data.balance : null;
+        } catch {}
+      }
       return {
         id: a.id,
         institutionName: a.institutionName,
