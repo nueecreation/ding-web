@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { WaitlistForm } from "./WaitlistForm";
+
+function scrollToWaitlist(e: MouseEvent<HTMLAnchorElement>) {
+  e.preventDefault();
+  document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" });
+}
 
 export function LandingPage() {
   return (
@@ -45,6 +50,7 @@ function Nav() {
           </Link>
           <a
             href="#waitlist"
+            onClick={scrollToWaitlist}
             className="bg-[#C8F135] text-[#0D0D0D] font-semibold text-xs sm:text-sm px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-[#B8E020] transition-colors whitespace-nowrap"
           >
             Get early access
@@ -83,6 +89,7 @@ function Hero() {
         <div className="flex flex-col sm:flex-row gap-4">
           <a
             href="#waitlist"
+            onClick={scrollToWaitlist}
             className="bg-[#C8F135] text-[#0D0D0D] font-bold text-base px-8 py-4 rounded-2xl hover:bg-[#B8E020] transition-all hover:-translate-y-0.5 text-center"
           >
             Join the waitlist
