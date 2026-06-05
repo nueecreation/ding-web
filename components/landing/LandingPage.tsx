@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
 import { WaitlistForm } from "./WaitlistForm";
 
@@ -14,6 +14,7 @@ export function LandingPage() {
     <div className="min-h-screen bg-[#0D0D0D] text-[#F2F0E8] font-body overflow-x-hidden">
       <Nav />
       <Hero />
+      <VideoSection />
       <Problem />
       <Solution />
       <Stats />
@@ -132,6 +133,75 @@ function Hero() {
             <div className="text-[#888070] text-[10px] md:text-xs leading-snug">{stat.label}</div>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function VideoSection() {
+  const [unmuted, setUnmuted] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const handleUnmute = () => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage(
+      JSON.stringify({ event: "command", func: "unMute", args: [] }),
+      "*",
+    );
+    win.postMessage(
+      JSON.stringify({ event: "command", func: "playVideo", args: [] }),
+      "*",
+    );
+    setUnmuted(true);
+  };
+
+  return (
+    <section className="border-t border-white/8 py-20 md:py-28">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="flex flex-col items-center text-center">
+          <h2 className="font-display font-bold text-3xl md:text-4xl text-[#F2F0E8] leading-tight mb-10">
+            See it in action.
+          </h2>
+          <div className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/8 bg-black shadow-[0_20px_60px_-20px_rgba(200,241,53,0.15)]">
+            <iframe
+              ref={iframeRef}
+              src="https://www.youtube.com/embed/AO7HK3Dgglw?autoplay=1&mute=1&playsinline=1&loop=1&playlist=AO7HK3Dgglw&controls=1&modestbranding=1&rel=0&enablejsapi=1"
+              title="Ding! in action"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+            {!unmuted && (
+              <button
+                type="button"
+                onClick={handleUnmute}
+                aria-label="Tap to unmute"
+                className="absolute inset-0 flex items-end justify-center group focus:outline-none"
+              >
+                <span className="m-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/70 text-[#F2F0E8] text-xs font-medium backdrop-blur-sm group-hover:bg-black/80 transition-colors">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-3.5 h-3.5"
+                    aria-hidden="true"
+                  >
+                    <path d="M11 5 6 9H2v6h4l5 4V5Z" />
+                    <path
+                      d="m17 9 5 5m0-5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  </svg>
+                  Tap to unmute
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </section>
   );
