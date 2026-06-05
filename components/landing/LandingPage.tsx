@@ -143,13 +143,10 @@ function VideoSection() {
     <section className="border-t border-white/8 py-20 md:py-28">
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col items-center text-center">
-          <h2 className="font-display font-bold text-5xl md:text-7xl leading-[1.05] text-[#C8F135] mb-6">
+          <h2 className="font-display font-semibold text-sm md:text-base tracking-[0.2em] uppercase text-[#F2F0E8] mb-8 whitespace-nowrap">
             See it in action.
           </h2>
-          <p className="text-[#888070] text-lg md:text-xl leading-relaxed mb-12 max-w-2xl">
-            Watch the full demo. No account numbers. No app switching.
-          </p>
-          <div className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/8 bg-black shadow-[0_20px_60px_-20px_rgba(200,241,53,0.15)]">
+          <div className="relative w-full max-w-[300px] sm:max-w-[380px] aspect-[9/16] rounded-2xl overflow-hidden border border-white/8 bg-black shadow-[0_20px_60px_-20px_rgba(200,241,53,0.15)]">
             <iframe
               src="https://player.cloudinary.com/embed/?cloud_name=dj0ziyvy2&public_id=SaveClip.App_AQMH4ZtTogrK5gNPQI93hvRT4srLQcpl20k6nS5TFNnd4enwVD2x-k5nBZPMkel0QrSUdIaQthaIc2k4Vpemd1ZgMYoIuLSpJrmcnjQ_s7avu6&autoplay=true&muted=true&loop=true&controls=true"
               title="Ding! in action"
